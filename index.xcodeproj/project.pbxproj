@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D49324971809DA9A00A01A54 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D49324961809DA9A00A01A54 /* main.c */; };
-		D49324991809DACF00A01A54 /* index.c in Sources */ = {isa = PBXBuildFile; fileRef = D49324981809DACF00A01A54 /* index.c */; };
-		D493249C1809DAFA00A01A54 /* sorted-list.c in Sources */ = {isa = PBXBuildFile; fileRef = D493249B1809DAFA00A01A54 /* sorted-list.c */; };
-		D493249F1809DB3200A01A54 /* tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = D493249E1809DB3200A01A54 /* tokenizer.c */; };
-		D49324A21809DB6B00A01A54 /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = D49324A11809DB6B00A01A54 /* makefile */; };
+		D49324AE1809DD6F00A01A54 /* index.c in Sources */ = {isa = PBXBuildFile; fileRef = D49324A61809DD6F00A01A54 /* index.c */; };
+		D49324AF1809DD6F00A01A54 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D49324A81809DD6F00A01A54 /* main.c */; };
+		D49324B01809DD6F00A01A54 /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = D49324A91809DD6F00A01A54 /* makefile */; };
+		D49324B11809DD6F00A01A54 /* sorted-list.c in Sources */ = {isa = PBXBuildFile; fileRef = D49324AA1809DD6F00A01A54 /* sorted-list.c */; };
+		D49324B21809DD6F00A01A54 /* tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = D49324AC1809DD6F00A01A54 /* tokenizer.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,14 +28,14 @@
 
 /* Begin PBXFileReference section */
 		D40EF3891809D9A5005FA20C /* index */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = index; sourceTree = BUILT_PRODUCTS_DIR; };
-		D49324961809DA9A00A01A54 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = SOURCE_ROOT; };
-		D49324981809DACF00A01A54 /* index.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = index.c; sourceTree = SOURCE_ROOT; };
-		D493249B1809DAFA00A01A54 /* sorted-list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sorted-list.c"; sourceTree = SOURCE_ROOT; };
-		D493249E1809DB3200A01A54 /* tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tokenizer.c; sourceTree = SOURCE_ROOT; };
-		D49324A11809DB6B00A01A54 /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = SOURCE_ROOT; };
-		D49324A31809DB7E00A01A54 /* tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tokenizer.h; sourceTree = SOURCE_ROOT; };
-		D49324A41809DBA200A01A54 /* index.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = index.h; sourceTree = SOURCE_ROOT; };
-		D49324A51809DBC200A01A54 /* sorted-list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sorted-list.h"; sourceTree = SOURCE_ROOT; };
+		D49324A61809DD6F00A01A54 /* index.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = index.c; sourceTree = "<group>"; };
+		D49324A71809DD6F00A01A54 /* index.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = index.h; sourceTree = "<group>"; };
+		D49324A81809DD6F00A01A54 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		D49324A91809DD6F00A01A54 /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		D49324AA1809DD6F00A01A54 /* sorted-list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sorted-list.c"; sourceTree = "<group>"; };
+		D49324AB1809DD6F00A01A54 /* sorted-list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sorted-list.h"; sourceTree = "<group>"; };
+		D49324AC1809DD6F00A01A54 /* tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tokenizer.c; sourceTree = "<group>"; };
+		D49324AD1809DD6F00A01A54 /* tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tokenizer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,14 +68,14 @@
 		D40EF38B1809D9A5005FA20C /* index */ = {
 			isa = PBXGroup;
 			children = (
-				D49324961809DA9A00A01A54 /* main.c */,
-				D49324981809DACF00A01A54 /* index.c */,
-				D49324A41809DBA200A01A54 /* index.h */,
-				D493249B1809DAFA00A01A54 /* sorted-list.c */,
-				D49324A51809DBC200A01A54 /* sorted-list.h */,
-				D493249E1809DB3200A01A54 /* tokenizer.c */,
-				D49324A31809DB7E00A01A54 /* tokenizer.h */,
-				D49324A11809DB6B00A01A54 /* makefile */,
+				D49324A61809DD6F00A01A54 /* index.c */,
+				D49324A71809DD6F00A01A54 /* index.h */,
+				D49324A81809DD6F00A01A54 /* main.c */,
+				D49324A91809DD6F00A01A54 /* makefile */,
+				D49324AA1809DD6F00A01A54 /* sorted-list.c */,
+				D49324AB1809DD6F00A01A54 /* sorted-list.h */,
+				D49324AC1809DD6F00A01A54 /* tokenizer.c */,
+				D49324AD1809DD6F00A01A54 /* tokenizer.h */,
 			);
 			path = index;
 			sourceTree = "<group>";
@@ -131,11 +131,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D49324971809DA9A00A01A54 /* main.c in Sources */,
-				D49324991809DACF00A01A54 /* index.c in Sources */,
-				D493249C1809DAFA00A01A54 /* sorted-list.c in Sources */,
-				D493249F1809DB3200A01A54 /* tokenizer.c in Sources */,
-				D49324A21809DB6B00A01A54 /* makefile in Sources */,
+				D49324AE1809DD6F00A01A54 /* index.c in Sources */,
+				D49324AF1809DD6F00A01A54 /* main.c in Sources */,
+				D49324B01809DD6F00A01A54 /* makefile in Sources */,
+				D49324B11809DD6F00A01A54 /* sorted-list.c in Sources */,
+				D49324B21809DD6F00A01A54 /* tokenizer.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
