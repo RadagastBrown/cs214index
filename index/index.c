@@ -6,7 +6,7 @@
 int addTerm( char* new_term, char* file_path );
 TermPtr createTermPtr();
 FilePtr createFilePtr();
-TermPtr deleteTerm( char* target_term );
+void deleteTerm( char* target_term );
 int fileCompare( void*, void* );
 int filePathCompare( char*, char* );
 TermPtr findTerm( char* target_term );
@@ -76,10 +76,15 @@ TermPtr createTermPtr()
 	return t;
 }
 
-TermPtr deleteTerm( char* target )
+void deleteTerm( char* target )
 {
-	//TODO
-	return NULL;
+	TermPtr t = findTerm( target );
+
+	if( t != NULL )
+	{
+		HASH_DEL( values, t );
+		SLRemove( keys, target );
+	}
 }
 
 /**
@@ -131,7 +136,7 @@ int reinsertFile( SortedListPtr files, FilePtr fp )
 {
 	if( fp == NULL || files == NULL )
 	{
-		printf("fp or files params in fileCountIncrement is NULL.\n");
+		printf("fp or files params in reinsertFile is NULL.\n");
 		return 0;
 	}
 
@@ -139,7 +144,7 @@ int reinsertFile( SortedListPtr files, FilePtr fp )
 
 	if( !successful )
 	{
-		printf("Unable to remove fp in fileCountIncrement.\n");
+		printf("Unable to remove fp in reinsertFile.\n");
 		return 0;
 	}
 
@@ -147,7 +152,7 @@ int reinsertFile( SortedListPtr files, FilePtr fp )
 
 	if( !successful )
 	{
-		printf("Unable to insert fp in fileCountIncrement.\n");
+		printf("Unable to insert fp in reinsertFile.\n");
 		return 0;
 	}
 
@@ -156,7 +161,6 @@ int reinsertFile( SortedListPtr files, FilePtr fp )
 
 int updateFileList(SortedListPtr files, char* file_path )
 {
-
 	Node file_node = files->head;
 	int comparison = 0;
 	FilePtr curr_file = NULL;
