@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <fcntl.h>
 #include "index.h"
 #include "tokenizer.h"
 
@@ -14,33 +17,34 @@ int keyCompare( void*, void* );
 int updateFileList( SortedListPtr files, char* target);
 
 
-SortedListPtr keys = NULL;
-TermPtr values = NULL;
+SortedListPtr keys;
+TermPtr values;
 
 int addTerm(char* new_term, char* file_path )
 {
 	TermPtr t = findTerm( new_term );
 
+	/* If term already exists, update its list of associated files. */
 	if( t != NULL )
 	{
 		return updateFileList( t->files, file_path );
 	}
 
-	FilePtr f = createFilePtr();
-	f->file_path = file_path;
-	f->file_path_length = strlen(file_path);
-	f->appearances++;
+	/* Else... */
 
+	/* Initialize TermPtr containing the new term and its list of associated files. */
 	t = createTermPtr();
-	t->term = new_term;
 	t->term_length = strlen(new_term);
+	t->term = malloc( t->term_length );
+	strcpy( t->term, new_term );
 	t->files = SLCreate(fileCompare);
 
-	int successful = SLInsert( t->files, f );
+	/* Insert the FilePtr into the term's list of associated files. */
+	int successful = insertFileIntoList( t->files, file_path );
 
+	/* If insert is unsuccessful, perform cleanup. */
 	if( !successful )
 	{
-		free(f);
 		free(t->files);
 		free(t);
 
@@ -112,6 +116,60 @@ TermPtr findTerm( char* target )
 	return t;
 }
 
+/*
+* Description: retrieves the entire file contents as a string and places it in a fileString variable
+* Parameters: fileName - the filename to retrieve the data from
+* Returns: fileString if the string is successfully copied, NULL otherwise
+*/
+char *getFileContents(char* file_path )
+{
+	FILE *fp = fopen(file_path, "r");
+
+	if (fp == NULL)
+	{
+		return NULL;
+	}
+
+	fseek(fp, 0, SEEK_END);
+	size_t fileSize = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	char *fileString = (char *) malloc(fileSize);
+	size_t result = fread(fileString, 1, fileSize, fp);
+	fclose(fp);
+
+	if (result == 0) {
+		return NULL;
+	}
+
+	return fileString;
+}
+
+/**
+ * Create a new FilePtr object wrapping the given file_path, and then
+ * insert the FilePtr into the given list of files.
+ *
+ * Return 1 if successful; 0 otherwise.
+ */
+int insertFileIntoList( SortedListPtr files, char* file_path)
+{
+	FilePtr f = createFilePtr();
+	f->file_path_length = strlen(file_path);
+	f->file_path = malloc(f->file_path_length);
+	strcpy( f->file_path, file_path );
+	f->appearances++;
+
+	int successful = SLInsert( files, f );
+
+	if( !successful )
+	{
+		free( f );
+		return 0;
+	}
+
+	return 1;
+}
+
 /**
  * Compare keys a and b, and return -1 if a < b, 0 if a == b, 1 if a > b.
  * This function assumes a and b are of type char*, and so comparison is
@@ -123,6 +181,81 @@ int keyCompare( void* a, void* b )
 	char* b_string = b;
 
 	return strcmp( a_string, b_string );
+}
+
+/**
+ * Parse through the given file_contents text, tokenizing and storing elements
+ * as necessary.
+ */
+void parseFileContents( char* file_path, char* file_contents )
+{
+	TermPtr t;
+	TokenizerT* tk = TKCreate( file_contents );
+	char* token = TKGetNextToken( tk );
+
+	while( token != NULL )
+	{
+		t = findTerm( token );
+		if( t != NULL )
+		{
+			updateFileList( t->files, file_path );
+		}
+		else
+		{
+			addTerm( token, file_path );
+		}
+	}
+
+	TKDestroy( tk );
+}
+
+/**
+ * Parse the file_path to discover whether or not it is a directory.
+ * If the given path is a directory, recursively loop through its contents.
+ * If the given path is a file, forward it to functions to read its contents.
+ */
+void parseFilePath( char* file_path )
+{
+	DIR* dir = opendir( file_path );
+
+	/* If the path is a directory... */
+	if( dir != NULL )
+	{
+		/* ... iterate through its contents. */
+		struct dirent* entry = readdir( dir );
+		while( entry != NULL )
+		{
+			DIR* dir_test = opendir( entry->d_name );
+
+			/* If the directory contains subdirectories... */
+			if( dir_test != NULL )
+			{
+				/* ...recurse on them. */
+				parseFilePath( entry->d_name );
+				closedir( entry->d_name );
+			}
+
+			/* Else parse and store the contents of the file. */
+			else
+			{
+				char* file_contents = getFileContents( entry->d_name );
+				parseFileContents( file_contents, entry->d_name );
+				free( file_contents );
+			}
+
+			entry = readdir( dir );
+		}
+
+		closedir( dir );
+	}
+
+	/* Else parse and store the contents of the file. */
+	else
+	{
+		char* file_contents = getFileContents( file_path );
+		parseFileContents( file_contents, file_path );
+		free( file_contents );
+	}
 }
 
 /**
@@ -159,6 +292,13 @@ int reinsertFile( SortedListPtr files, FilePtr fp )
 	return 1;
 }
 
+/**
+ * Iterate through the list of files.  If the given file is already in the list,
+ * increase its number of appearances.  If the given file is not in the list,
+ * add it.
+ *
+ * Return 1 if successfully updated, 0 otherwise.
+ */
 int updateFileList(SortedListPtr files, char* file_path )
 {
 	Node file_node = files->head;
@@ -180,28 +320,45 @@ int updateFileList(SortedListPtr files, char* file_path )
 		file_node = file_node->next;
 	}
 
-	FilePtr f = createFilePtr();
-	f->file_path = file_path;
-	f->file_path_length = strlen(file_path);
-	f->appearances++;
+	int successful = insertFileIntoList( files, file_path );
 
-	int successful = SLInsert( files, f );
-
-	if( !successful )
-	{
-		free(f);
-		return 0;
-	}
-
-	return 1;
+	return successful;
 }
 
 int main( int argc, char** argv )
 {
-	//First check input values
-	//Then initialize key list
+	/* Check input values. */
+	if (argc != 3) {
+		printf("ERROR: Invalid number of arguments\n");
+		printf("USAGE: index <inverted-index file name> <directory or file name>\n");
+		exit(EXIT_FAILURE);
+	}
+
+	FILE *fp = fopen(argv[1], "r");
+
+	if( fp != NULL )
+	{
+		fclose( fp );
+		printf("A file with your inverted-index file name already exists.\n");
+		printf("Please restart program and enter a new name.\n");
+		exit( EXIT_FAILURE );
+	}
+	else{
+		fclose( fp );
+	}
+
+
+	/* Initialize key list and values hash table. */
 	keys = SLCreate(keyCompare);
-	//Then iterate sort contents of files as necessary
+	values = NULL;
+
+
+	/* Iterate and sort contents of files as necessary. */
+	parseFilePath( argv[ 2 ] );
+
+	//Generate file with sorted items as its content.
+	//TODO
+
 
 	return 0;
 }
