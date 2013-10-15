@@ -152,6 +152,7 @@ SortedListIteratorPtr SLCreateIterator(SortedListPtr list);
 
 void SLDestroyIterator(SortedListIteratorPtr iter);
 
+int SLHasNext(SortedListIteratorPtr iter);
 
 /*
  * SLNextItem returns the next object in the list encapsulated by the
@@ -191,5 +192,11 @@ Node generateNode();
  * The node may, however, still have reference back into the list.
  */
 void primeNodeForRemoval( SortedListPtr, Node );
+
+/*
+ * Shift the node containing the target up the list, if its contents have changed
+ * such that the list no longer has its correct descending order.
+ */
+void shiftNodeUp( SortedListPtr list, void* target );
 
 #endif

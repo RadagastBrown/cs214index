@@ -5,19 +5,16 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../index/index.c \
-../index/main.c \
 ../index/sorted-list.c \
 ../index/tokenizer.c 
 
 OBJS += \
 ./index/index.o \
-./index/main.o \
 ./index/sorted-list.o \
 ./index/tokenizer.o 
 
 C_DEPS += \
 ./index/index.d \
-./index/main.d \
 ./index/sorted-list.d \
 ./index/tokenizer.d 
 

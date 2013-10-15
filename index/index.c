@@ -6,16 +6,21 @@
 #include "index.h"
 #include "tokenizer.h"
 
+int addFile(SortedListPtr files, char* file_path );
 int addTerm( char* new_term, char* file_path );
+void cleanup();
 TermPtr createTermPtr();
 FilePtr createFilePtr();
 void deleteTerm( char* target_term );
 int fileCompare( void*, void* );
 int filePathCompare( char*, char* );
 TermPtr findTerm( char* target_term );
+char *getFileContents(char* file_path );
+int insertFileIntoList( SortedListPtr files, char* file_path );
 int keyCompare( void*, void* );
-int updateFileList( SortedListPtr files, char* target);
-
+void parseFileContents( char* file_path, char* file_contents );
+void processInput( char* file_path );
+void writeFile( char* file_path );
 
 SortedListPtr keys;
 TermPtr values;
@@ -42,6 +47,7 @@ int addFile(SortedListPtr files, char* file_path )
 		if( comparison == 0 )
 		{
 			curr_file->appearances++;
+			shiftNodeUp( files, curr_file );//This may have errors
 			return 1;
 		}
 
@@ -82,10 +88,41 @@ int addTerm(char* new_term, char* file_path )
 
 	t->number_of_files++;
 
-	SLInsert(keys, t);
+	SLInsert(keys, new_term);
 	HASH_ADD_KEYPTR( hh, values, new_term, strlen(new_term), t );
 
 	return 1;
+}
+
+void cleanup()
+{
+	SortedListIteratorPtr key_iter = SLCreateIterator( keys );
+
+	while( SLHasNext( key_iter ) )
+	{
+		char* key = SLNextItem( key_iter );
+		TermPtr t = findTerm( key );
+
+		SortedListIteratorPtr file_iter = SLCreateIterator( t->files );
+
+		while( SLHasNext( file_iter ) )
+		{
+			FilePtr f = SLNextItem( file_iter );
+			free( f->file_path );
+			free( f );
+		}
+
+		SLDestroyIterator( file_iter );
+		SLDestroy( t->files );
+
+		free( t->term );
+		deleteTerm( key );
+
+		free( key );
+	}
+
+	SLDestroyIterator( key_iter );
+	SLDestroy( keys );
 }
 
 FilePtr createFilePtr()
@@ -227,13 +264,23 @@ void parseFileContents( char* file_path, char* file_contents )
 		t = findTerm( token );
 		if( t != NULL )
 		{
-			int result = addFile( t->files, file_path );
-			//TODO handle result return
+			int successful = addFile( t->files, file_path );
+			if( successful )
+			{
+				t->number_of_files++;
+			}
+			else
+			{
+				//TODO handle failure
+			}
 		}
 		else
 		{
-			int result = addTerm( token, file_path );
-			//TODO handle result return.
+			int successful = addTerm( token, file_path );
+			if( !successful )
+			{
+				//TODO handle failure
+			}
 		}
 	}
 
@@ -262,15 +309,15 @@ void processInput( char* file_path )
 			if( dir_test != NULL )
 			{
 				/* ...recurse on them. */
-				parseFilePath( entry->d_name );
-				closedir( entry->d_name );
+				processInput( entry->d_name );
+				closedir( dir_test );
 			}
 
 			/* Else parse and store the contents of the file. */
 			else
 			{
 				char* file_contents = getFileContents( entry->d_name );
-				parseFileContents( file_contents, entry->d_name );
+				parseFileContents( entry->d_name, file_contents );
 				free( file_contents );
 			}
 
@@ -289,38 +336,52 @@ void processInput( char* file_path )
 	}
 }
 
-/**
- * Reinsert a file already in the given list of files.  This should occur after
- * an a file has been changed in such a way as to render its current position
- * in the ordering incorrect (such as a FilePtr->appearances count change).
- *
- * Return 1 if successful; 0 otherwise.
- */
-int reinsertFile( SortedListPtr files, FilePtr fp )
+void writeFile( char* file_path )
 {
-	if( fp == NULL || files == NULL )
+	FILE* new_file = fopen( file_path, "w" );
+	SortedListIteratorPtr key_iter = SLCreateIterator( keys );
+
+	while( SLHasNext( key_iter ) )
 	{
-		printf("fp or files params in reinsertFile is NULL.\n");
-		return 0;
+		char* key = SLNextItem( key_iter );
+		TermPtr t = findTerm( key );
+
+		fputs("<list> ", new_file);
+		fputs(key, new_file);
+		fputs("\n", new_file);
+
+		SortedListIteratorPtr file_iter = SLCreateIterator( t->files );
+
+		int i = 0;
+		while( SLHasNext( file_iter ) )
+		{
+			if( i == 5 )
+			{
+				i = 0;
+				fputs("\n", new_file);
+			}
+
+			FilePtr f = SLNextItem( file_iter );
+			fputs( f->file_path, new_file );
+			fputs( " ", new_file );
+
+			char appearances[20];
+			snprintf(appearances, 20, "%zd", f->appearances );
+			fputs(appearances, new_file);
+			fputs(" ", new_file );
+
+			i++;
+		}
+
+		fputs("\n", new_file);
+		fputs("</list>", new_file);
+		fputs("\n", new_file);
+
+		SLDestroyIterator( file_iter );
 	}
 
-	int successful = SLRemove( files, fp );
-
-	if( !successful )
-	{
-		printf("Unable to remove fp in reinsertFile.\n");
-		return 0;
-	}
-
-	successful = SLInsert( files, fp );
-
-	if( !successful )
-	{
-		printf("Unable to insert fp in reinsertFile.\n");
-		return 0;
-	}
-
-	return 1;
+	SLDestroyIterator( key_iter );
+	fclose(new_file);
 }
 
 int main( int argc, char** argv )
@@ -352,9 +413,11 @@ int main( int argc, char** argv )
 	/* Iterate and sort contents of files as necessary. */
 	processInput( argv[ 2 ] );
 
-	//Generate file with sorted items as its content.
-	//TODO
+	/* Generate file with sorted items as its content. */
+	writeFile( argv[ 1 ] );
 
+	/* Destroy contents of Index. (i.e. perform cleanup) */
+	cleanup();
 
 	return 0;
 }

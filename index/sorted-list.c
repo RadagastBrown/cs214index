@@ -269,6 +269,31 @@ void SLDestroyIterator(SortedListIteratorPtr iter)
 	}
 }
 
+int SLHasNext( SortedListIteratorPtr iterator )
+{
+	if( !iterator->started )
+	{
+		if( iterator->list->nodeCount > 0 )
+		{
+			return 1;
+		}
+		else{
+			return 0;
+		}
+	}
+	else
+	{
+		if( iterator->current_node->next == NULL )
+		{
+			return 0;
+		}
+		else
+		{
+			return 1;
+		}
+	}
+}
+
 /*
  * Obtain the next object in the list associated with the given iterator.
  * This will also cause iterator to have reference to the node wrapping the object
@@ -426,5 +451,92 @@ void primeNodeForRemoval( SortedListPtr list, Node node )
 		if( node->next != NULL ){
 			node->next->inbound_ptr_count++;
 		}
+	}
+}
+
+/**
+ * Shift the node containing the target up the list, if its contents have changed
+ * such that the list no longer has its correct descending order.
+ */
+void shiftNodeUp( SortedListPtr list, void* target )
+{
+	Node target_node = findNode( list, target );
+	if( target_node == NULL )
+	{
+		return;
+	}
+
+	if( target_node == list->head )
+	{
+		return;
+	}
+
+	int comparison = list->function( target, target_node->prev->object);
+
+	/* While the target is greater than its preceding neighbor. */
+	while( comparison > 0 )
+	{
+		Node prev = target_node->prev;
+		Node next = target_node->next;
+
+		//prev next = t next
+		//next prev = t prev
+
+		//t prev = prev prev
+		//prev prev next = t
+		//prev prev = t
+		//t next = prev
+
+		prev->next = target_node->next;
+		target_node->inbound_ptr_count--;
+
+		if( next != NULL )
+		{
+			next->inbound_ptr_count++;
+
+			next->prev = target_node->prev;
+			prev->inbound_ptr_count++;
+			target_node->inbound_ptr_count--;
+		}
+
+		target_node->prev = prev->prev;
+		prev->inbound_ptr_count--;
+
+		if( prev->prev != NULL )
+		{
+			prev->prev->inbound_ptr_count++;
+
+			prev->prev->next = target_node;
+			target_node->inbound_ptr_count++;
+			prev->inbound_ptr_count--;
+		}
+
+		Node pp_temp = prev->prev;
+
+		prev->prev = target_node;
+		target_node->inbound_ptr_count++;
+
+		if( pp_temp != NULL )
+		{
+			pp_temp->inbound_ptr_count--;
+		}
+
+		target_node->next = prev;
+		prev->inbound_ptr_count++;
+
+		if( next != NULL )
+		{
+			next->inbound_ptr_count--;
+		}
+
+		if( prev == list->head )
+		{
+			list->head = target_node;
+			prev->inbound_ptr_count--;
+			target_node->inbound_ptr_count++;
+			return;
+		}
+
+		comparison = list->function( target, target_node->prev->object);
 	}
 }
