@@ -20,20 +20,49 @@ int updateFileList( SortedListPtr files, char* target);
 SortedListPtr keys;
 TermPtr values;
 
-int addTerm(char* new_term, char* file_path )
+/**
+ * Iterate through the list of files.  If the given file is already in the list,
+ * increase its number of appearances.  If the given file is not in the list,
+ * add it.
+ *
+ * Return 1 if successfully updated, 0 otherwise.
+ */
+int addFile(SortedListPtr files, char* file_path )
 {
-	TermPtr t = findTerm( new_term );
+	Node file_node = files->head;
+	int comparison = 0;
+	FilePtr curr_file = NULL;
 
-	/* If term already exists, update its list of associated files. */
-	if( t != NULL )
+	while( file_node != NULL )
 	{
-		return updateFileList( t->files, file_path );
+		curr_file = (FilePtr)(file_node->object);
+
+		comparison = strcmp( file_path, curr_file->file_path );
+
+		if( comparison == 0 )
+		{
+			curr_file->appearances++;
+			return 1;
+		}
+
+		file_node = file_node->next;
 	}
 
-	/* Else... */
+	int successful = insertFileIntoList( files, file_path );
 
+	return successful;
+}
+
+/**
+ * Create a TermPtr and add it to the values hashtable while also
+ * adding the associated file_path to the keys list.
+ *
+ * Return 1 if successfully added, 0 otherwise.
+ */
+int addTerm(char* new_term, char* file_path )
+{
 	/* Initialize TermPtr containing the new term and its list of associated files. */
-	t = createTermPtr();
+	TermPtr t = createTermPtr();
 	t->term_length = strlen(new_term);
 	t->term = malloc( t->term_length );
 	strcpy( t->term, new_term );
@@ -198,11 +227,13 @@ void parseFileContents( char* file_path, char* file_contents )
 		t = findTerm( token );
 		if( t != NULL )
 		{
-			updateFileList( t->files, file_path );
+			int result = addFile( t->files, file_path );
+			//TODO handle result return
 		}
 		else
 		{
-			addTerm( token, file_path );
+			int result = addTerm( token, file_path );
+			//TODO handle result return.
 		}
 	}
 
@@ -214,7 +245,7 @@ void parseFileContents( char* file_path, char* file_contents )
  * If the given path is a directory, recursively loop through its contents.
  * If the given path is a file, forward it to functions to read its contents.
  */
-void parseFilePath( char* file_path )
+void processInput( char* file_path )
 {
 	DIR* dir = opendir( file_path );
 
@@ -292,39 +323,6 @@ int reinsertFile( SortedListPtr files, FilePtr fp )
 	return 1;
 }
 
-/**
- * Iterate through the list of files.  If the given file is already in the list,
- * increase its number of appearances.  If the given file is not in the list,
- * add it.
- *
- * Return 1 if successfully updated, 0 otherwise.
- */
-int updateFileList(SortedListPtr files, char* file_path )
-{
-	Node file_node = files->head;
-	int comparison = 0;
-	FilePtr curr_file = NULL;
-
-	while( file_node != NULL )
-	{
-		curr_file = (FilePtr)(file_node->object);
-
-		comparison = strcmp( file_path, curr_file->file_path );
-
-		if( comparison == 0 )
-		{
-			curr_file->appearances++;
-			return 1;
-		}
-
-		file_node = file_node->next;
-	}
-
-	int successful = insertFileIntoList( files, file_path );
-
-	return successful;
-}
-
 int main( int argc, char** argv )
 {
 	/* Check input values. */
@@ -347,14 +345,12 @@ int main( int argc, char** argv )
 		fclose( fp );
 	}
 
-
 	/* Initialize key list and values hash table. */
 	keys = SLCreate(keyCompare);
 	values = NULL;
 
-
 	/* Iterate and sort contents of files as necessary. */
-	parseFilePath( argv[ 2 ] );
+	processInput( argv[ 2 ] );
 
 	//Generate file with sorted items as its content.
 	//TODO
