@@ -1,0 +1,6 @@
+<list> world
+/home/tom/Dev/repos/Github/cs214index/index/test.txt 3 
+</list>
+<list> hello
+/home/tom/Dev/repos/Github/cs214index/index/test.txt 2 
+</list>

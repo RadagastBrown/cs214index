@@ -6,7 +6,7 @@
 #include "index.h"
 #include "tokenizer.h"
 
-int addFile(SortedListPtr files, char* file_path );
+int addFile(SortedListPtr files, char* file_path, TermPtr t );
 int addTerm( char* new_term, char* file_path );
 void cleanup();
 TermPtr createTermPtr();
@@ -32,7 +32,7 @@ TermPtr values;
  *
  * Return 1 if successfully updated, 0 otherwise.
  */
-int addFile(SortedListPtr files, char* file_path )
+int addFile( SortedListPtr files, char* file_path, TermPtr t )
 {
 	Node file_node = files->head;
 	int comparison = 0;
@@ -55,6 +55,11 @@ int addFile(SortedListPtr files, char* file_path )
 	}
 
 	int successful = insertFileIntoList( files, file_path );
+
+	if( successful )
+	{
+		t->number_of_files++;
+	}
 
 	return successful;
 }
@@ -164,8 +169,8 @@ void deleteTerm( char* target )
  */
 int fileCompare( void* a, void* b )
 {
-	size_t a_int = *(size_t*)((FilePtr)a)->appearances;
-	size_t b_int = *(size_t*)((FilePtr)b)->appearances;
+	size_t a_int = ((FilePtr)a)->appearances;
+	size_t b_int = ((FilePtr)b)->appearances;
 
 	return a_int - b_int;
 }
@@ -189,6 +194,7 @@ TermPtr findTerm( char* target )
 */
 char *getFileContents(char* file_path )
 {
+	printf("%s\n", file_path );
 	FILE *fp = fopen(file_path, "r");
 
 	if (fp == NULL)
@@ -264,10 +270,10 @@ void parseFileContents( char* file_path, char* file_contents )
 		t = findTerm( token );
 		if( t != NULL )
 		{
-			int successful = addFile( t->files, file_path );
+			int successful = addFile( t->files, file_path, t );
 			if( successful )
 			{
-				t->number_of_files++;
+				//t->number_of_files++;
 			}
 			else
 			{
@@ -282,6 +288,8 @@ void parseFileContents( char* file_path, char* file_contents )
 				//TODO handle failure
 			}
 		}
+
+		token = TKGetNextToken( tk );
 	}
 
 	TKDestroy( tk );
@@ -330,8 +338,13 @@ void processInput( char* file_path )
 	/* Else parse and store the contents of the file. */
 	else
 	{
+		printf( " %s\n", file_path );
 		char* file_contents = getFileContents( file_path );
-		parseFileContents( file_contents, file_path );
+		if( file_contents == NULL )
+		{
+			//TODO handle error
+		}
+		parseFileContents( file_path, file_contents );
 		free( file_contents );
 	}
 }
@@ -402,13 +415,13 @@ int main( int argc, char** argv )
 		printf("Please restart program and enter a new name.\n");
 		exit( EXIT_FAILURE );
 	}
-	else{
-		fclose( fp );
-	}
 
 	/* Initialize key list and values hash table. */
 	keys = SLCreate(keyCompare);
 	values = NULL;
+
+	char* x = argv[ 2 ];
+	printf("%s\n", x);
 
 	/* Iterate and sort contents of files as necessary. */
 	processInput( argv[ 2 ] );
